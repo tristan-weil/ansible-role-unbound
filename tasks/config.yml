@@ -1,0 +1,50 @@
+---
+
+- name: create config sub directory
+  file:
+    path: /etc/unbound/unbound.conf.d
+    owner: root
+    group: root
+    mode: "0755"
+    state: directory
+
+- name: delete some Debian files
+  file:
+    path: "/etc/unbound/unbound.conf.d/{{ item }}"
+    state: absent
+  loop:
+    - qname-minimisation.conf
+    - root-auto-trust-anchor-file.conf
+
+- name: check the conf file exists
+  stat:
+    path: "{{ unbound_config_path }}"
+  register: __unbound_conf_file_result
+
+- name: install the main unbound config file
+  template:
+    src: etc/unbound_global.conf.j2
+    dest: "{{ unbound_config_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+  when: >
+    unbound_global_config is defined
+    or not __unbound_conf_file_result.stat.exists
+  notify:
+    - unbound reload
+
+- name: install the configuration files
+  template:
+    src: etc/unbound_extra.conf.j2
+    dest: "/etc/unbound/unbound.conf.d/{{ item.key }}.conf"
+    owner: root
+    group: root
+    mode: "0640"
+  loop: "{{ unbound_extra_config | dict2items }}"
+  notify:
+    - unbound reload
+
+- name: update anchor key
+  command: unbound-anchor -a {{ unbound_root_key }}
+  when: (unbound_default_global_config | combine(unbound_global_config, recursive=True))['auto-trust-anchor-file'] is defined

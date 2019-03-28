@@ -1,0 +1,6 @@
+---
+
+- include_role:
+    name: t18s.fr_pkg
+  vars:
+    pkg_list: "{{ unbound_pkgs }}"

@@ -1,0 +1,28 @@
+{# ######################################## #}
+{# ##### MACROS ########################### #}
+{# ######################################## #}
+{% macro display_keydict(pkey, dict) %}
+{% for (key, value) in dict|dictsort -%}
+{{ pkey }} {{ key }} {{ value }}
+{%- endfor %}
+{% endmacro %}
+{# ######################################## #}
+{% macro display_dict(dict) %}
+{% for (key, value) in dict|dictsort -%}
+{%      if value is string %}
+{{ key }} {{ value }}
+{%      elif value is mapping %}
+{{ display_keydict(key, value) }}
+{%      elif value is iterable %}
+{%          for i in value|sort %}
+{{ key }} {{ i }}
+{%          endfor %}
+{%      else %}
+{{ key }} {{ value }}
+{%      endif %}
+{%- endfor %}
+{% endmacro %}
+{# ######################################## #}
+{# ##### MAIN ############################# #}
+{# ######################################## #}
+{{ display_dict(unbound_resolvconf_configuration) }}

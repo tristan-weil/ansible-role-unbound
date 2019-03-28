@@ -1,0 +1,7 @@
+---
+
+- name: add the unbound service to init and start the service
+  service:
+    name: unbound
+    enabled: "{{ unbound_daemon_enabled }}"
+    state: started

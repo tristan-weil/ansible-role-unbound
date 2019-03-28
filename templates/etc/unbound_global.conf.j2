@@ -1,0 +1,30 @@
+{# ######################################## #}
+{# ##### MACROS ########################### #}
+{# ######################################## #}
+{% macro display_dict(dict, indent=0) %}
+{% for (key, value) in dict|dictsort -%}
+{% if key != 'include' %}
+{%      if value is string %}
+{{ ' ' * indent }}{{ key }}: {{ value }}
+{%      elif value is mapping %}
+{{ key }}:
+{{ display_dict(value, indent + 4) }}
+{%      elif value is iterable %}
+{%          for i in value|sort %}
+{{ ' ' * indent }}{{ key }}: {{ i }}
+{%          endfor %}
+{%      else %}
+{{ ' ' * indent }}{{ key }}: {{ value }}
+{%      endif %}
+{%- endif %}
+{%- endfor %}
+{% endmacro %}
+{# ######################################## #}
+{# ##### MAIN ############################# #}
+{# ######################################## #}
+{% set config = unbound_default_global_config | combine(unbound_global_config, recursive=True) %}
+{{ display_dict(config) }}
+
+{% if config['include'] is defined %}
+include: {{ config['include'] }}
+{% endif %}

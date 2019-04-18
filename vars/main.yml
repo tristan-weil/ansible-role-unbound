@@ -1,5 +1,8 @@
 ---
 
+##############################################################################
+# Configuration
+##############################################################################
 unbound_default_global_config:
   server:
     interface:
@@ -27,12 +30,18 @@ unbound_default_global_config:
 
   include: "/etc/unbound/unbound.conf.d/*.conf"
 
+##############################################################################
+# Variables
+##############################################################################
 unbound_pkgs: "{{ __unbound_pkgs_by_distribution[ ansible_facts['distribution'] ] }}"
 unbound_config_path: "{{ __unbound_config_path_by_distribution[ ansible_facts['distribution'] ] }}"
 unbound_root_key: "{{ __unbound_root_key_by_distribution[ ansible_facts['distribution'] ] }}"
 unbound_user: "{{ __unbound_user_by_distribution[ ansible_facts['distribution'] ] }}"
 unbound_group: "{{ __unbound_group_by_distribution[ ansible_facts['distribution'] ] }}"
 
+##############################################################################
+# Distributions' dictionaries
+##############################################################################
 __unbound_pkgs_by_distribution:
   Debian:
     - unbound

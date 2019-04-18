@@ -1,9 +1,0 @@
----
-
-unbound_pkgs: []
-
-unbound_config_path: /etc/unbound.conf
-unbound_root_key: /var/unbound/db/root.key
-
-unbound_user: _unbound
-unbound_group: _unbound

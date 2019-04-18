@@ -26,3 +26,31 @@ unbound_default_global_config:
   #  control-interface: /var/run/unbound.sock
 
   include: "/etc/unbound/unbound.conf.d/*.conf"
+
+unbound_pkgs: "{{ __unbound_pkgs_by_distribution[ ansible_facts['distribution'] ] }}"
+unbound_config_path: "{{ __unbound_config_path_by_distribution[ ansible_facts['distribution'] ] }}"
+unbound_root_key: "{{ __unbound_root_key_by_distribution[ ansible_facts['distribution'] ] }}"
+unbound_user: "{{ __unbound_user_by_distribution[ ansible_facts['distribution'] ] }}"
+unbound_group: "{{ __unbound_group_by_distribution[ ansible_facts['distribution'] ] }}"
+
+__unbound_pkgs_by_distribution:
+  Debian:
+    - unbound
+    - unbound-anchor
+  OpenBSD: []
+
+__unbound_config_path_by_distribution:
+  Debian: /etc/unbound/unbound.conf
+  OpenBSD: /etc/unbound.conf
+
+__unbound_root_key_by_distribution:
+  Debian: /var/lib/unbound/root.key
+  OpenBSD: /var/unbound/db/root.key
+
+__unbound_user_by_distribution:
+  Debian: unbound
+  OpenBSD: _unbound
+
+__unbound_group_by_distribution:
+  Debian: unbound
+  OpenBSD: _unbound

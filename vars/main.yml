@@ -18,15 +18,15 @@ unbound_default_global_config:
     hide-identity: "yes"
     hide-version: "yes"
 
-    #qname-minimisation: "yes"
+    # qname-minimisation: "yes"
 
     # Uncomment to enable DNSSEC validation.
-    #auto-trust-anchor-file: "{{ unbound_root_key }}"
-    #val-log-level: 2
+    # auto-trust-anchor-file: "{{ unbound_root_key }}"
+    # val-log-level: 2
 
-  #remote-control:
-  #  control-enable: "yes"
-  #  control-interface: /var/run/unbound.sock
+  # remote-control:
+  #   control-enable: "yes"
+  #   control-interface: /var/run/unbound.sock
 
   include: "/etc/unbound/unbound.conf.d/*.conf"
 

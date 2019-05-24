@@ -40,7 +40,7 @@
     dest: "/etc/unbound/unbound.conf.d/{{ item.key }}.conf"
     owner: root
     group: root
-    mode: "0640"
+    mode: "0644"
   loop: "{{ unbound_extra_config | dict2items }}"
   notify:
     - unbound reload

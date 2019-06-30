@@ -1,0 +1,19 @@
+---
+
+- import_tasks: pkg.yml
+
+- import_tasks: config_init.yml
+
+- import_tasks: config.yml
+
+- import_tasks: service.yml
+
+- import_tasks: resolv.conf.yml
+  when: >
+    unbound_resolvconf_replace
+    and (
+      unbound_resolvconf_configuration['nameserver'] is defined and
+      unbound_resolvconf_configuration['nameserver'] | length > 0
+    )
+
+- import_tasks: dhcp.yml

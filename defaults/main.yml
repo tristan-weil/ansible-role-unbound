@@ -7,3 +7,5 @@ unbound_extra_config: {}
 
 unbound_resolvconf_replace: False
 unbound_resolvconf_configuration: {}
+
+unbound_install_step: default

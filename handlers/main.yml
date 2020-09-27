@@ -1,11 +1,15 @@
 ---
 
-- name: unbound restart
+- name: 'unbound_restart_handler'
+  listen: 'network_restart_listener'
   service:
-    name: unbound
-    state: restarted
+    name: 'unbound'
+    state: 'restarted'
+  when: >
+    'services' in ansible_facts
+    and ('unbound' in ansible_facts['services'] or 'unbound.service' in ansible_facts['services'])
 
-- name: unbound reload
+- name: 'unbound_reload_handler'
   service:
-    name: unbound
-    state: reloaded
+    name: 'unbound'
+    state: 'reloaded'

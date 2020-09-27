@@ -1,30 +1,22 @@
 ---
 
-- name: check the conf file exists
-  stat:
-    path: "{{ unbound_config_path }}"
-  register: __unbound_conf_file_result
-
-- name: install the main unbound config file
+- name: 'install the main unbound config file'
   template:
-    src: etc/unbound_global.conf.j2
-    dest: "{{ unbound_config_path }}"
-    owner: root
-    group: root
-    mode: "0644"
-  when: >
-    unbound_global_config is defined
-    or not __unbound_conf_file_result.stat.exists
+    src: 'etc/unbound_global.conf.j2'
+    dest: "{{ _unbound_config_path }}"
+    owner: 'root'
+    group: "{{ _unbound_root_group }}"
+    mode: '0644'
   notify:
-    - unbound reload
+    - 'unbound_reload_handler'
 
-- name: install the configuration files
+- name: 'install the extra configuration files'
   template:
-    src: etc/unbound_extra.conf.j2
-    dest: "/etc/unbound/unbound.conf.d/{{ item.key }}.conf"
-    owner: root
-    group: root
-    mode: "0644"
-  loop: "{{ unbound_extra_config | dict2items }}"
+    src: 'etc/unbound_extra.conf.j2'
+    dest: "{{ _unbound_config_extra_dir }}/{{ item.name }}.conf"
+    owner: 'root'
+    group: "{{ _unbound_root_group }}"
+    mode: '0644'
+  loop: "{{ unbound_extra_config }}"
   notify:
-    - unbound reload
+    - 'unbound_reload_handler'

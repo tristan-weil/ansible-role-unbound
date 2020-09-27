@@ -1,5 +1,13 @@
 ---
 
-- include_tasks: "step_{{ unbound_install_step }}.yml"
+- import_tasks: 'pkg.yml'
 
-- meta: flush_handlers
+- import_tasks: 'config_init.yml'
+
+- import_tasks: 'config.yml'
+
+- import_tasks: 'etc_hosts.yml'
+
+- import_tasks: 'service.yml'
+
+- meta: 'flush_handlers'

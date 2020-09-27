@@ -1,0 +1,33 @@
+---
+
+- hosts: all
+  name: 'Verify'
+  become: True
+  gather_facts: True
+
+  tasks:
+    - name: 'Check the service is enabled/started'
+      service:
+        name: 'unbound'
+        enabled: True
+        state: 'started'
+      register: __verify
+      failed_when: __verify.changed
+
+    - name: 'Verify dig case1'
+      shell: |
+        dig @127.0.0.1 +dnssec www.google.com | egrep "status: NOERROR,"
+      register: __verify_cmd
+      failed_when: __verify_cmd.rc != 0
+
+    - name: 'Verify dig case2'
+      shell: |
+        dig @127.0.0.1 +dnssec www.google.com | egrep -q "flags:.*do"
+      register: __verify_cmd
+      failed_when: __verify_cmd.rc != 0
+
+    - name: 'Verify dig case3'
+      shell: |
+        dig @127.0.0.1 +dnssec www.google.com | egrep -q "SERVER: 127.0.0.1"
+      register: __verify_cmd
+      failed_when: __verify_cmd.rc != 0

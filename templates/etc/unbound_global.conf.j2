@@ -22,9 +22,8 @@
 {# ######################################## #}
 {# ##### MAIN ############################# #}
 {# ######################################## #}
-{% set config = unbound_default_global_config | combine(unbound_global_config, recursive=True) %}
+{% set config = _unbound_default_global_config | combine(unbound_global_config, recursive=True) %}
 {{ display_dict(config) }}
-
-{% if config['include'] is defined %}
+{%- if config['include'] is defined %}
 include: {{ config['include'] }}
 {% endif %}

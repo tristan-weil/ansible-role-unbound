@@ -1,0 +1,27 @@
+---
+
+- hosts: all
+  name: 'Converge'
+  become: True
+  vars:
+    __verify_unbound_global_config:
+      # no ipv6 with virtualbox
+      server:
+        interface:
+          - '127.0.0.1'
+
+    __verify_unbound_extra_config:
+      - name: 'default'
+        config:
+          # Add forwarder
+          forward-zone:
+            name: '.'
+            forward-addr: '9.9.9.9'
+            forward-first: 'yes'
+
+  tasks:
+    - import_role:
+        name: 'ansible-role-unbound'
+      vars:
+        unbound_global_config: "{{ __verify_unbound_global_config }}"
+        unbound_extra_config: "{{ __verify_unbound_extra_config }}"

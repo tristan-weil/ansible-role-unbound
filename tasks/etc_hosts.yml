@@ -1,0 +1,59 @@
+---
+
+- name: 'check the unbound conf file exists'
+  stat:
+    path: "/etc/unbound/unbound.conf.d/{{ unbound_etc_hosts_file_name }}"
+  register: __unbound_unbound_etc_hosts_path_result
+
+- name: 'clean the unbound conf file'
+  lineinfile:
+    dest: "/etc/unbound/unbound.conf.d/{{ unbound_etc_hosts_file_name }}"
+    regexp: '^\s+local-data: \"{{ item.hostname }} IN A'
+    state: 'absent'
+    owner: 'root'
+    group: "{{ _unbound_root_group }}"
+    mode: '0644'
+  when: >
+    __unbound_unbound_etc_hosts_path_result.stat.exists
+    and item.state | default('present') != 'present'
+  loop: "{{ unbound_etc_hosts }}"
+  notify:
+    - 'unbound_restart_handler'
+
+- name: 'delete the unbound conf file if empty'
+  file:
+    dest: "/etc/unbound/unbound.conf.d/{{ unbound_etc_hosts_file_name }}"
+    state: 'absent'
+  when: >
+    unbound_etc_hosts | length == 0
+  notify:
+    - 'unbound_restart_handler'
+
+- name: 'populate the unbound conf file (header)'
+  lineinfile:
+    dest: "/etc/unbound/unbound.conf.d/{{ unbound_etc_hosts_file_name }}"
+    line: "server:"
+    insertbefore: BOF
+    owner: 'root'
+    group: "{{ _unbound_root_group }}"
+    mode: '0644'
+    create: True
+  when: >
+    unbound_etc_hosts | length > 0
+  notify:
+    - 'unbound_restart_handler'
+
+- name: 'populate the unbound conf file'
+  lineinfile:
+    dest: "/etc/unbound/unbound.conf.d/{{ unbound_etc_hosts_file_name }}"
+    regexp: "^    local-data: \"{{ item.hostname }} IN A {{ item.address }}\""
+    line: "    local-data: \"{{ item.hostname }} IN A {{ item.address }}\""
+    owner: 'root'
+    group: "{{ _unbound_root_group }}"
+    mode: '0644'
+    create: True
+  when: >
+    item.state | default('present') == 'present'
+  loop: "{{ unbound_etc_hosts }}"
+  notify:
+    - 'unbound_restart_handler'

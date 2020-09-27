@@ -3,63 +3,145 @@
 ##############################################################################
 # Configuration
 ##############################################################################
-unbound_default_global_config:
+_unbound_default_global_config:
   server:
     interface:
-      - 127.0.0.1
-      - ::1
+      - '127.0.0.1'
+      - '::1'
+      # - 127.0.0.1@5353  # listen on alternative port
+
+    # override the default "any" address to send queries; if multiple
+    # addresses are available, they are used randomly to counter spoofing
+    # outgoing-interface: 192.0.2.1
+    # outgoing-interface: 2001:db8::53
 
     access-control:
-      - 0.0.0.0/0 refuse
-      - 127.0.0.0/8 allow
-      - ::0/0 refuse
-      - ::1 allow
+      - '0.0.0.0/0 refuse'
+      - '127.0.0.0/8 allow'
+      - '::0/0 refuse'
+      - '::1 allow'
 
-    hide-identity: "yes"
-    hide-version: "yes"
+    hide-identity: 'yes'
+    hide-version: 'yes'
 
-    # qname-minimisation: "yes"
+    # Perform DNSSEC validation. Comment out the below option to disable.
+    #
+    auto-trust-anchor-file: "{{ _unbound_root_key }}"
+    val-log-level: 2
 
-    # Uncomment to enable DNSSEC validation.
-    # auto-trust-anchor-file: "{{ unbound_root_key }}"
-    # val-log-level: 2
+    # Uncomment to synthesize NXDOMAINs from DNSSEC NSEC chains
+    # https://tools.ietf.org/html/rfc8198
+    #
+    aggressive-nsec: 'yes'
 
-  # remote-control:
-  #   control-enable: "yes"
-  #   control-interface: /var/run/unbound.sock
+    # Serve zones authoritatively from Unbound to resolver clients.
+    # Not for external service.
+    #
+    # local-zone: "local." static
+    # local-data: "mycomputer.local. IN A 192.0.2.51"
+    # local-zone: "2.0.192.in-addr.arpa." static
+    # local-data-ptr: "192.0.2.51 mycomputer.local"
 
-  include: "/etc/unbound/unbound.conf.d/*.conf"
+    # UDP EDNS reassembly buffer advertised to peers. Default 4096.
+    # May need lowering on broken networks with fragmentation/MTU issues,
+    # particularly if validating DNSSEC.
+    #
+    # edns-buffer-size: 1480
+
+    # Use TCP for "forward-zone" requests. Useful if you are making
+    # DNS requests over an SSH port forwarding.
+    #
+    # tcp-upstream: yes
+
+    # CA Certificates used for forward-tls-upstream (RFC7858) hostname
+    # verification.  Since it's outside the chroot it is only loaded at
+    # startup and thus cannot be changed via a reload.
+    # tls-cert-bundle: "/etc/ssl/cert.pem"
+
+    # Time to live maximum for negative responses, these have a SOA in
+    # the authority section that is limited in time.  Default is 3600.
+    # This applies to nxdomain and nodata answers.
+    cache-max-negative-ttl: 30
+
+  remote-control:
+    control-enable: 'yes'
+    control-use-cert: 'no'
+    control-interface: "{{ _unbound_sock }}"
+
+  # Use an upstream forwarder (recursive resolver) for some or all zones.
+  #
+  # forward-zone:
+  #   name: "."				# use for ALL queries
+  #   forward-addr: 192.0.2.53		# example address only
+  #   forward-first: yes			# try direct if forwarder fails
+
+  # Use an upstream DNS-over-TLS forwarder and do not fall back to cleartext
+  # if that fails.
+  # forward-zone:
+  #   name: "."
+  #   forward-tls-upstream: yes		# use DNS-over-TLS forwarder
+  #   forward-first: no			# do NOT send direct
+  #   # the hostname after "#" is not a comment, it is used for TLS checks:
+  #   forward-addr: 192.0.2.53@853#resolver.hostname.example
+
+  include: "{{ _unbound_config_extra_dir }}/*.conf"
 
 ##############################################################################
 # Variables
 ##############################################################################
-unbound_pkgs: "{{ __unbound_pkgs_by_distribution[ ansible_facts['distribution'] ] }}"
-unbound_config_path: "{{ __unbound_config_path_by_distribution[ ansible_facts['distribution'] ] }}"
-unbound_root_key: "{{ __unbound_root_key_by_distribution[ ansible_facts['distribution'] ] }}"
-unbound_user: "{{ __unbound_user_by_distribution[ ansible_facts['distribution'] ] }}"
-unbound_group: "{{ __unbound_group_by_distribution[ ansible_facts['distribution'] ] }}"
+_unbound_pkgs: "{{ _unbound_pkgs_by_os_family[ ansible_facts['os_family'] ] }}"
+_unbound_user: "{{ _unbound_user_by_os_family[ ansible_facts['os_family'] ] }}"
+_unbound_group: "{{ _unbound_group_by_os_family[ ansible_facts['os_family'] ] }}"
+_unbound_root_group: "{{ _unbound_root_group_by_os_family[ ansible_facts['os_family'] ] }}"
+_unbound_chroot_dir: "{{ _unbound_chroot_dir_by_os_family[ ansible_facts['os_family'] ] }}"
+_unbound_root_key: "{{ _unbound_db_dir }}/root.key"
+_unbound_db_dir: "{{ _unbound_db_dir_by_os_family[ ansible_facts['os_family'] ] }}"
+_unbound_config_dir: "{{ _unbound_config_dir_by_os_family[ ansible_facts['os_family'] ] }}"
+_unbound_dev_dir: "{{ _unbound_chroot_dir }}/dev"
+_unbound_config_path: "{{ _unbound_config_dir }}/unbound.conf"
+_unbound_config_extra_dir: "{{ _unbound_config_dir }}/unbound.conf.d"
+_unbound_run_dir: "{{ _unbound_chroot_dir }}/etc"
+_unbound_dev_mknod: "{{ _unbound_dev_mknod_by_os_family[ ansible_facts['os_family'] ] }}"
+_unbound_sock: "{{ _unbound_sock_by_os_family[ ansible_facts['os_family'] ] }}"
 
 ##############################################################################
 # Distributions' dictionaries
 ##############################################################################
-__unbound_pkgs_by_distribution:
+_unbound_pkgs_by_os_family:
   Debian:
-    - unbound
-    - unbound-anchor
+    - 'unbound'
+    - 'unbound-anchor'
+    - 'dnsutils'
   OpenBSD: []
 
-__unbound_config_path_by_distribution:
-  Debian: /etc/unbound/unbound.conf
-  OpenBSD: /etc/unbound.conf
+_unbound_sock_by_os_family:
+  Debian: '/var/run/unbound.ctl'
+  OpenBSD: '/var/run/unbound.sock'
 
-__unbound_root_key_by_distribution:
-  Debian: /var/lib/unbound/root.key
-  OpenBSD: /var/unbound/db/root.key
+_unbound_db_dir_by_os_family:
+  Debian: "{{ _unbound_chroot_dir }}"
+  OpenBSD: "{{ _unbound_chroot_dir }}/db"
 
-__unbound_user_by_distribution:
-  Debian: unbound
-  OpenBSD: _unbound
+_unbound_dev_mknod_by_os_family:
+  Debian: 'none'
+  OpenBSD: 'none'
 
-__unbound_group_by_distribution:
-  Debian: unbound
-  OpenBSD: _unbound
+_unbound_config_dir_by_os_family:
+  Debian: '/etc/unbound'
+  OpenBSD: '/var/unbound/etc'
+
+_unbound_chroot_dir_by_os_family:
+  Debian: '/var/lib/unbound'
+  OpenBSD: '/var/unbound'
+
+_unbound_user_by_os_family:
+  Debian: 'unbound'
+  OpenBSD: '_unbound'
+
+_unbound_group_by_os_family:
+  Debian: 'unbound'
+  OpenBSD: '_unbound'
+
+_unbound_root_group_by_os_family:
+  Debian: 'root'
+  OpenBSD: 'wheel'

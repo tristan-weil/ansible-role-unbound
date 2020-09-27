@@ -1,6 +1,21 @@
 ---
 
+- block:
+    - name: 'check if unbound is installed (systemd)'
+      stat:
+        path: '/lib/systemd/system/unbound.service'
+      register: __unbound_installed_result
+
+    - name: 'disable automatic start (systemd)'
+      file:
+        src: '/dev/null'
+        dest: '/etc/systemd/system/unbound.service'
+        state: 'link'
+      when: not __unbound_installed_result.stat.exists
+  when: >
+    ansible_facts['service_mgr'] == 'systemd'
+
 - include_role:
-    name: t18s.fr_pkg
+    name: 'ansible-role-pkg'
   vars:
-    pkg_list: "{{ unbound_pkgs }}"
+    pkg_list: "{{ _unbound_pkgs }}"

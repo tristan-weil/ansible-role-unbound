@@ -1,7 +1,15 @@
 ---
 
-- name: add the unbound service to init and start the service
+- name: 'enable automatic start (systemd)'
+  systemd:
+    name: 'unbound'
+    masked: False
+  when: >
+    ansible_facts['service_mgr'] == 'systemd'
+    and not __unbound_installed_result.stat.exists
+
+- name: 'add the unbound service to init and start the service'
   service:
-    name: unbound
-    enabled: "{{ unbound_daemon_enabled }}"
-    state: started
+    name: 'unbound'
+    enabled: True
+    state: 'started'

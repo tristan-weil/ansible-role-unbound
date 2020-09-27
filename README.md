@@ -1,90 +1,83 @@
 # Ansible Role: unbound
 
-An Ansible Role that installs and configures `unbound` on Debian and OpenBSD.
+An Ansible Role that installs and configures `unbound`.
+
+[![Actions Status](https://github.com/tristan-weil/ansible-role-unbound/workflows/molecule/badge.svg?branch=master)](https://github.com/tristan-weil/ansible-role-unbound/actions)
 
 ## Role Variables
 
-Available variables are listed below, along with default values (see `defaults/main.yml`):
-    
-    unbound_global_config: [optional]
-    
-The default configuration of the main configuration file of the Unbound server is available in 
-`unbound_default_global_config` in `vars/main.yml`.
-It is possible to override or add new options using the `unbound_global_config` dictionary.
-The variables in the dictionary must respect the name and the grammar of the real `unbound.conf` file.
+Available variables are listed below, (see also `defaults/main.yml`).
 
-Note that if the `unbound_global_config` is undefined, the main configuration file won't be updated.
-    
-    unbound_extra_config: {}
+Mandatory variables:
 
-This dictionary allows to add extra configuration files in the `/etc/unbound/unbound.conf.d` directory.
-They will be loaded if the `include` parameter exists in the `/etc/unbound.conf` file.
-The variables in the dictionary must respect the name and the grammar of the real `unbound.conf` file.
-    
-    unbound_resolvconf_replace: False
-    unbound_resolvconf_configuration: {}
+| Variable      | Description |
+| :------------ | :---------- |
 
-These variables allow to configure the `/etc/resolv.conf` file.
-See the options to add as a dictionary in `man resolv.conf`.
+Optional variables:
 
-    unbound_daemon_enabled: True
+| Variable      | Default | Description |
+| :------------ | :------ | :---------- |
+| unbound_global_config | {} | the default configuration of the main configuration file of the Unbound server is available in `_unbound_default_global_config` in `vars/main.yml`. It is possible to override or add new options using the `unbound_global_config` dictionary. The variables in the dictionary must respect the name and the grammar of the real `unbound.conf` file. Note that if the `unbound_global_config` is undefined, the main configuration file won't be updated. |
+| unbound_extra_config | [] | this list allows to add extra configuration files in the `/etc/unbound/unbound.conf.d` directory. They will be loaded if the `include` parameter exists in the `/etc/unbound.conf` file. The variables in the dictionary must respect the name and the grammar of the real `unbound.conf` file. |
+| unbound_daemon_enabled  | True | *True / False*: to enable this service by default |
+| unbound_etc_hosts | []  | a list of <*unbound_etc_host*> entries | |
+| unbound_etc_hosts_file_name | etc_hosts.conf | the name of the `unbound_etc_hosts` file in the `unbound` directory |
 
-This variable enables the daemon and startup or not.
+### <*unbound_etc_host*>
+
+A *unbound_etc_host* represents an entry of one or more hostnames and an associated IP address.
+
+Mandatory variables:
+
+| Variable      | Description |
+| :------------ | :---------- |
+| hostname      | one or more hostnames |
+| address       | an IP address |
+
+Optional variables:
+
+| Variable      | Default | Description |
+| :------------ | :------ | :---------- |
+| state         | present | *present / absent*: the state of the entry in the `/etc/hosts` file |
 
 For more information, see https://nlnetlabs.nl/projects/unbound/about/
 
-## Dependencies
-
-- t18s.fr_pkg
-
 ## Example Playbook
 
-    - hosts: all
+    - hosts: 'all'
       roles:
-        - role: t18s.fr_unbound
-          unbound_global_config: {}      
+        - role: 'ansible-role-unbound'
           unbound_extra_config:
             consul:
                 # Allow insecure queries to local resolvers
                 server:
-                    do-not-query-localhost: "no"
-                    qname-minimisation: "no"
+                    do-not-query-localhost: 'no'
+                    qname-minimisation: 'no'
                     domain-insecure: consul
         
                 # Add consul as a stub-zone
                 stub-zone:
-                    name: consul
+                    name: 'consul'
                     stub-addr: "{{ consul_simulation_api_bind }}@8600"
         
                 # Add forwarder
                 forward-zone:
                     name: "."
                     forward-addr: "{{ my_nameservers }}"
-                    forward-first: "yes"
-        
-          unbound_resolvconf_replace: True
-          unbound_resolvconf_configuration:
-            nameserver: "{{ ['127.0.0.1'] | union(my_nameservers) }}"
-       
+                    forward-first: 'yes'     
 
 ## Todo
 
-Make it available for OpenBSD.
+None.
+
+## Dependencies
+
+See [requirements_galaxy.yml](https://github.com/tristan-weil/ansible-role-unbound/blob/master/requirements_galaxy.yml)
+
+## Supported platforms
+
+See [meta/main.yml](https://github.com/tristan-weil/ansible-role-unbound/blob/master/meta/main.yml)
 
 ## License
 
-```
-Copyright (c) 2019 Tristan Weil <titou@lab.t18s.fr>
-
-Permission to use, copy, modify, and distribute this software for any
-purpose with or without fee is hereby granted, provided that the above
-copyright notice and this permission notice appear in all copies.
-
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-```
+See [LICENSE.md](https://github.com/tristan-weil/ansible-role-unbound/blob/master/LICENSE.md)

@@ -1,11 +1,9 @@
 ---
 
-unbound_daemon_enabled: True
-
-# unbound_global_config: {}
+unbound_global_config: {}
 unbound_extra_config: {}
 
-unbound_resolvconf_replace: False
-unbound_resolvconf_configuration: {}
+unbound_etc_hosts: []
+unbound_etc_hosts_file_name: 'etc_hosts.conf'
 
-unbound_install_step: default
+unbound_install_step: 'default'

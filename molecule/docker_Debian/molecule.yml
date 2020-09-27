@@ -1,5 +1,10 @@
 ---
 
+dependency:
+  name: 'galaxy'
+  options:
+    role-file: 'requirements_galaxy.yml'
+
 driver:
   name: 'docker'
 

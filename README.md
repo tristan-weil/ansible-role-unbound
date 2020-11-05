@@ -80,4 +80,4 @@ See [meta/main.yml](https://github.com/tristan-weil/ansible-role-unbound/blob/ma
 
 ## License
 
-See [LICENSE.md](https://github.com/tristan-weil/ansible-role-unbound/blob/master/LICENSE.md)
+See [LICENSE.md](LICENSE.md)
